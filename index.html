@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Calculate MakeBot and franchise revenue." />
+    <meta name="description" content="Calculate MakeBot, T3 and franchisee revenue." />
     <title>Revenue Calculator</title>
     <style>
       :root { --navy:#13213b; --blue:#2d6cdf; --blue-soft:#eef4ff; --ink:#172033; --muted:#667085; --line:#e2e8f0; --canvas:#f6f8fc; --green:#138a5b; }
@@ -19,7 +19,7 @@
       .layout { display:grid; grid-template-columns:minmax(300px,.93fr) minmax(420px,1.45fr); gap:22px; align-items:start; }
       .card { background:#fff; border:1px solid var(--line); border-radius:14px; box-shadow:0 1px 2px rgba(16,24,40,.04); }
       .inputs,.results { padding:24px; }
-      h2 { font-size:17px; margin:0 0 5px; letter-spacing:-.01em; }
+      h2 { font-size:17px; margin:0 0 5px; }
       .hint { margin:0 0 20px; color:var(--muted); font-size:13px; }
       .field { margin:0 0 15px; }
       label { display:flex; justify-content:space-between; gap:12px; margin:0 0 7px; font-weight:600; font-size:13px; }
@@ -39,7 +39,7 @@
       .result-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
       .metric { padding:14px; border:1px solid var(--line); border-radius:10px; }
       .metric dt { color:var(--muted); font-size:12px; }
-      .metric dd { margin:5px 0 0; font-size:19px; font-weight:700; letter-spacing:-.02em; }
+      .metric dd { margin:5px 0 0; font-size:19px; font-weight:700; }
       .metric.good { border-color:#b9e4d0; background:#f3fcf7; }
       .metric.good dd { color:var(--green); }
       .formula { margin:20px 0 0; padding-top:18px; border-top:1px solid var(--line); color:var(--muted); font-size:12px; }
@@ -67,7 +67,6 @@
         .hint { margin-bottom:16px; }
         .split,.result-grid { grid-template-columns:1fr; gap:10px; }
         .field { margin-bottom:13px; }
-        label { margin-bottom:6px; font-size:13px; }
         input { height:46px; padding:10px 12px; font-size:16px; }
         .actions { margin-top:18px; }
         button { min-height:46px; flex:1; padding:10px 12px; }
@@ -76,18 +75,17 @@
         .hero small { text-align:left; }
         .metric { padding:13px; }
         .metric dd { font-size:20px; }
-        .formula { margin-top:16px; padding-top:15px; }
-        footer { padding:0 12px 20px; }
       }
     </style>
   </head>
+
   <body>
     <header class="topbar">
       <div class="topbar-inner">
         <div class="mark">R</div>
         <div>
           <h1>Revenue Calculator</h1>
-          <p class="subtitle">Estimate MakeBot and franchise revenue from your class setup.</p>
+          <p class="subtitle">Estimate MakeBot, T3 and franchisee revenue from your class setup.</p>
         </div>
       </div>
     </header>
@@ -98,7 +96,7 @@
       <div class="layout">
         <section class="card inputs">
           <h2>Inputs</h2>
-          <p class="hint">Use whole numbers where possible. Franchisee share is automatically calculated from the MakeBot share.</p>
+          <p class="hint">Franchisee share is calculated from the MakeBot and T3 shares.</p>
 
           <div class="split">
             <div class="field"><label>No. of hours / class</label><input id="hours" type="number" min="0" step="0.5" value="2"></div>
@@ -115,10 +113,13 @@
 
           <div class="split">
             <div class="field"><label>MakeBot share <span>%</span></label><input id="makebot" type="number" min="0" max="100" value="20"></div>
-            <div class="field"><label>Franchisee share <span>calculated</span></label><input id="franchiseShare" type="number" readonly></div>
+            <div class="field"><label>T3 share <span>%</span></label><input id="t3" type="number" min="0" max="100" value="20"></div>
           </div>
 
-          <div class="field"><label>No. of franchisees</label><input id="franchises" type="number" min="0" value="100"></div>
+          <div class="field">
+            <label>Franchisee share <span>calculated %</span></label>
+            <input id="franchiseShare" type="number" readonly>
+          </div>
 
           <div class="actions">
             <button class="primary" id="calculate" type="button">Calculate revenue</button>
@@ -132,22 +133,30 @@
 
           <div class="hero">
             <div>
-              <span>MakeBot’s total annual revenue</span>
+              <span>Franchisee revenue / year</span>
               <strong id="annualRevenue">₹0</strong>
             </div>
-            <small id="annualContext">Across 0 franchisees</small>
+            <small id="annualContext">Based on the current monthly fees</small>
           </div>
 
           <dl class="result-grid">
-            <div class="metric"><dt>Total class hours / week</dt><dd id="classHours">0</dd></div>
-            <div class="metric"><dt>Total students / week</dt><dd id="totalStudents">0</dd></div>
-            <div class="metric"><dt>Total fees / week</dt><dd id="totalFees">₹0</dd></div>
+            <div class="metric"><dt># of students</dt><dd id="totalStudents">0</dd></div>
+            <div class="metric"><dt>Total fees / month</dt><dd id="totalFees">₹0</dd></div>
+            <div class="metric"><dt>MakeBot share / month</dt><dd id="makebotMonth">₹0</dd></div>
+            <div class="metric"><dt>T3 share / month</dt><dd id="t3Month">₹0</dd></div>
+            <div class="metric"><dt>Franchisee share / month</dt><dd id="franchiseMonth">₹0</dd></div>
+            <div class="metric"><dt>Franchisee revenue / quarter</dt><dd id="franchiseQuarter">₹0</dd></div>
+            <div class="metric"><dt>Franchisee revenue / half year</dt><dd id="franchiseHalf">₹0</dd></div>
             <div class="metric"><dt>MakeBot revenue / year</dt><dd id="makebotAnnual">₹0</dd></div>
-            <div class="metric"><dt>Franchisee revenue / year</dt><dd id="franchiseAnnual">₹0</dd></div>
-            <div class="metric good"><dt>MakeBot revenue × franchisees</dt><dd id="networkRevenue">₹0</dd></div>
+            <div class="metric"><dt>T3 franchisee share / year</dt><dd id="t3Annual">₹0</dd></div>
+            <div class="metric good"><dt>Franchisee revenue / year</dt><dd id="franchiseAnnual">₹0</dd></div>
           </dl>
 
-          <p class="formula"><strong>Calculation:</strong> weekly students = classes/week × classes/day × days/week × students/BoT. Annual revenue uses 12 months. Currency values are shown in INR.</p>
+          <p class="formula">
+            <strong>Calculation:</strong>
+            students = classes/day × days/week × students/BoT.
+            Total fees are monthly. The franchisee results use 3, 6 and 12 months.
+          </p>
         </section>
       </div>
     </main>
@@ -155,39 +164,81 @@
     <footer>Revenue Calculator</footer>
 
     <script>
-      const defaults = { hours:2, classes:1, daily:2, days:5, students:1, fee:3000, makebot:20, franchises:100 };
+      const defaults = {
+        hours: 2,
+        classes: 1,
+        daily: 2,
+        days: 5,
+        students: 1,
+        fee: 3000,
+        makebot: 20,
+        t3: 20
+      };
+
       const ids = Object.keys(defaults);
+
       const n = id => Math.max(0, Number(document.getElementById(id).value) || 0);
-      const money = new Intl.NumberFormat("en-IN", { style:"currency", currency:"INR", maximumFractionDigits:0 });
-      const number = new Intl.NumberFormat("en-IN", { maximumFractionDigits:2 });
+
+      const money = new Intl.NumberFormat("en-IN", {
+        style: "currency",
+        currency: "INR",
+        maximumFractionDigits: 0
+      });
+
+      const number = new Intl.NumberFormat("en-IN", {
+        maximumFractionDigits: 2
+      });
 
       function calculate() {
         const v = Object.fromEntries(ids.map(id => [id, n(id)]));
-        const franchiseShare = Math.max(0, 100 - Math.min(100, v.makebot));
+
+        const franchiseShare = Math.max(
+          0,
+          100 - Math.min(100, v.makebot + v.t3)
+        );
+
         document.getElementById("franchiseShare").value = franchiseShare;
 
-        const totalClassHours = v.hours * v.classes * v.daily * v.days;
-        const totalStudents = v.classes * v.daily * v.days * v.students;
+        const totalStudents = v.daily * v.days * v.students;
         const totalFees = totalStudents * v.fee;
-        const makebotAnnual = totalFees * (v.makebot / 100) * 12;
-        const franchiseAnnual = totalFees * (franchiseShare / 100) * 12;
-        const networkRevenue = makebotAnnual * v.franchises;
 
-        document.getElementById("classHours").textContent = number.format(totalClassHours);
+        const makebotMonth = totalFees * (v.makebot / 100);
+        const t3Month = totalFees * (v.t3 / 100);
+        const franchiseMonth = totalFees * (franchiseShare / 100);
+
+        const franchiseQuarter = franchiseMonth * 3;
+        const franchiseHalf = franchiseMonth * 6;
+
+        const makebotAnnual = makebotMonth * 12;
+        const t3Annual = t3Month * 12;
+        const franchiseAnnual = franchiseMonth * 12;
+
         document.getElementById("totalStudents").textContent = number.format(totalStudents);
         document.getElementById("totalFees").textContent = money.format(totalFees);
+        document.getElementById("makebotMonth").textContent = money.format(makebotMonth);
+        document.getElementById("t3Month").textContent = money.format(t3Month);
+        document.getElementById("franchiseMonth").textContent = money.format(franchiseMonth);
+        document.getElementById("franchiseQuarter").textContent = money.format(franchiseQuarter);
+        document.getElementById("franchiseHalf").textContent = money.format(franchiseHalf);
         document.getElementById("makebotAnnual").textContent = money.format(makebotAnnual);
+        document.getElementById("t3Annual").textContent = money.format(t3Annual);
         document.getElementById("franchiseAnnual").textContent = money.format(franchiseAnnual);
-        document.getElementById("networkRevenue").textContent = money.format(networkRevenue);
-        document.getElementById("annualRevenue").textContent = money.format(networkRevenue);
+
+        document.getElementById("annualRevenue").textContent = money.format(franchiseAnnual);
         document.getElementById("annualContext").textContent =
-          `Across ${number.format(v.franchises)} franchise${v.franchises === 1 ? "" : "es"}`;
+          `${number.format(franchiseShare)}% franchisee share over 12 months`;
       }
 
-      ids.forEach(id => document.getElementById(id).addEventListener("input", calculate));
+      ids.forEach(id => {
+        document.getElementById(id).addEventListener("input", calculate);
+      });
+
       document.getElementById("calculate").addEventListener("click", calculate);
+
       document.getElementById("reset").addEventListener("click", () => {
-        ids.forEach(id => document.getElementById(id).value = defaults[id]);
+        ids.forEach(id => {
+          document.getElementById(id).value = defaults[id];
+        });
         calculate();
       });
 
